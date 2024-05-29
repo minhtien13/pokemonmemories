@@ -1,26 +1,58 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Welcome to Your Vue.js App" />
+  <main-screen
+    v-if="statusMatch === 'default'"
+    @onStart="onStartBefore($event)"
+  />
+  <interact-screen
+    v-if="statusMatch === 'match'"
+    :cartContexts="settings.cartContext"
+    @onFinish="onFinish"
+  />
+  <resuit-screen
+    v-if="statusMatch === 'winner'"
+    :timer="timer"
+    @resetAgain="statusMatch = 'default'"
+  />
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
-
+import MainScreen from "./components/MainScreen.vue";
+import InteractScreen from "./components/InteractScreen.vue";
+import ResuitScreen from "./components/ResuitScreen.vue";
+import { shuffled } from "./utils/array";
 export default {
   name: "App",
-  components: {
-    HelloWorld,
+  components: { MainScreen, InteractScreen, ResuitScreen },
+  data() {
+    return {
+      statusMatch: "default",
+      settings: {
+        totalOfBlogs: 0,
+        cartContext: [],
+        started: null,
+      },
+      timer: 0,
+    };
+  },
+  methods: {
+    onStartBefore(config) {
+      this.settings.totalOfBlogs = config.totalOfBlog;
+      const firstCarts = Array.from(
+        { length: this.settings.totalOfBlogs / 2 },
+        (_, i) => i + 1
+      );
+      const secondCarts = [...firstCarts];
+      const carts = [...firstCarts, ...secondCarts];
+      this.settings.cartContext = shuffled(shuffled(shuffled(carts)));
+      this.settings.started = new Date().getTime();
+      this.statusMatch = "match";
+    },
+    onFinish() {
+      this.timer = new Date().getTime() - this.settings.started;
+      this.statusMatch = "winner";
+    },
   },
 };
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style></style>
